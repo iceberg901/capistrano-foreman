@@ -1,8 +1,8 @@
 # Capistrano Foreman
 
-[![Code Climate](https://codeclimate.com/github/hyperoslo/capistrano-foreman.png)](https://codeclimate.com/github/hyperoslo/capistrano-foreman)
+[![Code Climate](https://img.shields.io/codeclimate/github/hyperoslo/capistrano-foreman.svg?style=flat)](https://codeclimate.com/github/hyperoslo/capistrano-foreman)
 
-Capistrano tasks for foreman and upstart.
+Capistrano tasks for foreman and upstart/systemd.
 
 ## Installation
 
@@ -14,26 +14,29 @@ Add this to your `Capfile`:
 require 'capistrano/foreman'
 
 # Default settings
-set :foreman_sudo, 'sudo'                    # Set to `rvmsudo` if you're using RVM
-set :foreman_upstart_path, '/etc/init/sites' # Set to `/etc/init/` if you don't have a sites folder
-set :foreman_options, {
+set :foreman_use_sudo, false # Set to :rbenv for rbenv sudo, :rvm for rvmsudo or true for normal sudo
+set :foreman_roles, :all
+set :foreman_init_system, 'upstart'
+set :foreman_export_path, ->{ File.join(Dir.home, '.init') }
+set :foreman_app, -> { fetch(:application) }
+set :foreman_app_name_systemd, -> { "#{ fetch(:foreman_app) }.target" }
+set :foreman_options, ->{ {
   app: application,
-  log: "#{shared_path}/log",
-  user: user,
-}
+  log: File.join(shared_path, 'log')
+} }
 ```
 
-See [exporting options](http://ddollar.github.io/foreman/#EXPORTING0) for an exhaustive list of foreman options.
+See [exporting options](http://ddollar.github.io/foreman/#EXPORTING) for an exhaustive list of foreman options.
 
 ## Usage
 
-Export Procfile to upstart:
+Export Procfile to upstart/systemd:
 
-    $ cap foreman:export
+    $ bundle exec cap production foreman:export
 
 Restart the application services:
 
-    $ cap foreman:restart
+    $ bundle exec cap production foreman:restart
 
 ## Credits
 
